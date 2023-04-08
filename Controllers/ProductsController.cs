@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using WebShopApi.Data;
 using WebShopApi.Models;
 using WebShopApi.Models.DTO;
 using WebShopApi.Models.Repository;
@@ -6,16 +7,18 @@ using WebShopApi.Models.Repository;
 namespace WebShopApi.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     public class ProductsController : Controller
     {
         private readonly ILogger<ProductsController> _logger;
         private readonly IProductRepository _productRepository;
+        private readonly DataContext _context;
 
-        public ProductsController(ILogger<ProductsController> logger, IProductRepository productRepository)
+        public ProductsController(ILogger<ProductsController> logger, IProductRepository productRepository, DataContext context)
         {
-            _productRepository = productRepository;
             _logger = logger;
+            _productRepository = productRepository;
+            _context = context;
         }
 
         [HttpGet]
@@ -34,28 +37,12 @@ namespace WebShopApi.Controllers
             return Ok(products);
         }
 
-        [HttpGet]
-        [Route("{id}")]
-        public async Task<IActionResult> Get(int id)
-        {
-            Product product = null;
-            await _productRepository.Get(id, product);
-            return Ok(product);
-        }
 
-        [HttpPost]
-        public async Task<IActionResult> Post(Product product)
+        [HttpPost("addProduct")]
+        public async Task<IActionResult> Post(ProductDTO productDto)
         {
-            await _productRepository.Post(new Product()
-            {
-                Id = product.Id,
-                Name = product.Name,
-                Description = product.Description,
-                Category = product.Category,
-                SerialNumber = product.SerialNumber,
-                Producer = product.Producer
-            });
-            return Created($"/api/animals/{product.Id}", product);
+            await _productRepository.Post(productDto);
+            return Created($"/api/products/{productDto.Name}", productDto);
         }
 
         [HttpDelete("{id}")]
@@ -66,16 +53,15 @@ namespace WebShopApi.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Put(int id, AddProduct product)
+        public async Task<IActionResult> Put(int id, ProductDTO productDto)
         {
             await _productRepository.Put(id, new Product()
             {
-                Id = product.Id,
-                Name = product.Name,
-                Description = product.Description,
-                Category = product.Category,
-                SerialNumber = product.SerialNumber,
-                Producer = product.Producer
+                Name = productDto.Name,
+                Description = productDto.Description,
+                Category = productDto.Category,
+                SerialNumber = productDto.SerialNumber,
+                Producer = productDto.Producer
             });
             return NoContent();
         }

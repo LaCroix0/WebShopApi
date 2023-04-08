@@ -1,12 +1,13 @@
 ﻿using System.Data.SqlClient;
+using WebShopApi.Data;
+using WebShopApi.Models.DTO;
 
 namespace WebShopApi.Models.Repository
 {
     public interface IProductRepository
     {
         Task Get(List<Product> products, string? orderBy);
-        Task Get(int id, Product product);
-        Task Post(Product product);
+        Task Post(ProductDTO productDto);
         Task Delete(int it);
         Task Put(int id, Product product);
     }
@@ -15,9 +16,11 @@ namespace WebShopApi.Models.Repository
     public class ProductRepository : IProductRepository
     {
         private readonly IConfiguration _configuration;
-        public ProductRepository(IConfiguration configuration)
+        private readonly DataContext _context;
+        public ProductRepository(IConfiguration configuration, DataContext context)
         {
             _configuration = configuration;
+            _context = context;
         }
         public async Task Get(List<Product> products, string? orderBy)
         {
@@ -25,7 +28,7 @@ namespace WebShopApi.Models.Repository
             {
                 var command = connection.CreateCommand();
                 command.CommandText =
-                    $"SELECT * FROM Product order by {orderBy}";
+                    $"SELECT * FROM Products order by {orderBy}";
                 await connection.OpenAsync();
                 var reader = await command.ExecuteReaderAsync();
                 while (await reader.ReadAsync())
@@ -43,39 +46,21 @@ namespace WebShopApi.Models.Repository
             }
         }
 
-        public async Task Get(int id, Product product)
+        public async Task Post(ProductDTO productDto)
         {
             using (var connection = new SqlConnection(_configuration.GetConnectionString("Default")))
             {
-                var command = connection.CreateCommand();
-                command.CommandText =
-                    $"SELECT * FROM Product WHERE id={id}";
-                await connection.OpenAsync();
-                var reader = await command.ExecuteReaderAsync();
-                product.Id = reader.GetInt32(0);
-                product.Name = reader.GetString(1);
-                product.Description = reader.GetValue(2) == DBNull.Value ? null : reader.GetString(2);
-                product.Category = reader.GetString(3);
-                product.SerialNumber = reader.GetInt32(4);
-                product.Producer = reader.GetString(5);
-            }
-        }
+                var product = new Product()
+                {
+                    Name = productDto.Name,
+                    Description = productDto.Description,
+                    Category = productDto.Category,
+                    SerialNumber = productDto.SerialNumber,
+                    Producer = productDto.Producer
+                };
+                _context.Products.Add(product);
+                await _context.SaveChangesAsync();
 
-        public async Task Post(Product product)
-        {
-            using (var connection = new SqlConnection(_configuration.GetConnectionString("Default")))
-            {
-                var command = connection.CreateCommand();
-                command.CommandText =
-                    "Insert into Product (id, name, description, category, serialnumber, producer) values (@1, @2, @3, @4, @5, @6)";
-                command.Parameters.AddWithValue("@1", product.Id);
-                command.Parameters.AddWithValue("@2", product.Name);
-                command.Parameters.AddWithValue("@3", product.Description is null ? DBNull.Value : product.Description);
-                command.Parameters.AddWithValue("@4", product.Category);
-                command.Parameters.AddWithValue("@5", product.SerialNumber);
-                command.Parameters.AddWithValue("@6", product.Producer);
-                await connection.OpenAsync();
-                await command.ExecuteNonQueryAsync();
             }
         }
 
@@ -83,12 +68,9 @@ namespace WebShopApi.Models.Repository
         {
             using (var connection = new SqlConnection(_configuration.GetConnectionString("Default")))
             {
-                var command = connection.CreateCommand();
-                command.CommandText =
-                    "Delete from Product where id = @1";
-                command.Parameters.AddWithValue("@1", id);
-                await connection.OpenAsync();
-                await command.ExecuteNonQueryAsync();
+                Product product = _context.Products.Find(id);
+                _context.Products.Remove(product);
+                await _context.SaveChangesAsync();
             }
         }
 
@@ -98,7 +80,7 @@ namespace WebShopApi.Models.Repository
             {
                 var command = connection.CreateCommand();
                 command.CommandText = 
-                    "Update Product set name = @1, description = @2, category = @3, serialnumber = @4, producer = @5 where id = @6";
+                    "Update Products set name = @1, description = @2, category = @3, serialnumber = @4, producer = @5 where id = @6";
                 command.Parameters.AddWithValue("@1", product.Name);
                 command.Parameters.AddWithValue("@2", product.Description is null ? DBNull.Value : product.Description);
                 command.Parameters.AddWithValue("@3", product.Category);
