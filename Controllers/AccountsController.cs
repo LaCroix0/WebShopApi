@@ -1,5 +1,6 @@
 ﻿using System.Security.Cryptography;
 using System.Text;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebShopApi.Data;
@@ -29,7 +30,7 @@ namespace WebShopApi.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Get()
+        public async Task<ActionResult> Get()
         {
             List<DisplayUserDTO> users = new List<DisplayUserDTO>();
             await _accountRepository.Get(users);
@@ -37,19 +38,35 @@ namespace WebShopApi.Controllers
         }
 
         [HttpPost("register")]
-        public async Task<IActionResult> Register(RegisterDTO registerDto)
+        [AllowAnonymous]
+        public async Task<ActionResult<UserDTO>> Register(RegisterDTO registerDto)
         {
             if (await _accountRepository.UserExists(registerDto.name)) return BadRequest("Username is taken");
             await _accountRepository.Register(registerDto);
+            var user = await _accountRepository.Register(registerDto);
 
-            return Created($"/api/accounts/{registerDto.name}", registerDto);
+            // chyba do wyjebania elo
+            var userDto = new UserDTO()
+            {
+                username = user.Name,
+                Token = _tokenRepository.CreateToken(user)
+            };
+
+            return Created($"/api/accounts/{userDto.username}", userDto);
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login(LoginDTO loginDto)
+        [AllowAnonymous]
+        public async Task<ActionResult<UserDTO>> Login(LoginDTO loginDto)
         {
             var user = await _accountRepository.Login(loginDto);
-            return Ok(user);
+            var userDto = new UserDTO()
+            {
+                username = user.Name,
+                Token = _tokenRepository.CreateToken(user)
+            };
+            
+            return Ok(userDto);
         }
 
 

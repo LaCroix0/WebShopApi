@@ -14,7 +14,7 @@ namespace WebShopApi.Models.Repository
     public interface IAccountsRepository
     {
         Task Get(List<DisplayUserDTO> users);
-        Task Register(RegisterDTO registerDto);
+        Task<Account> Register(RegisterDTO registerDto);
         Task<Account> Login(LoginDTO loginDto);
         Task<bool> UserExists(string name);
     }
@@ -33,24 +33,20 @@ namespace WebShopApi.Models.Repository
         {
             using (var connection = new SqlConnection(_configuration.GetConnectionString("Default")))
             {
-                var command = connection.CreateCommand();
-                command.CommandText =
-                    "SELECT * FROM Users";
-                await connection.OpenAsync();
-                var reader = await command.ExecuteReaderAsync();
-                while (await reader.ReadAsync())
+                var accounts = await _context.Users.ToListAsync();
+                foreach (var account in accounts)
                 {
                     users.Add(new DisplayUserDTO()
                     {
-                        id = reader.GetInt32(0),
-                        name = reader.GetString(1),
-                        email = reader.GetString(4),
-                        role = reader.GetString(5)
+                        id = account.Id,
+                        name = account.Name,
+                        email = account.Email,
+                        role = account.Role
                     });
                 }
             }
         }
-        public async Task Register(RegisterDTO registerDto)
+        public async Task<Account> Register(RegisterDTO registerDto)
         {
             using var hmac = new HMACSHA512();
             Account account = new Account()
@@ -65,6 +61,7 @@ namespace WebShopApi.Models.Repository
             _context.Users.Add(account);
             await _context.SaveChangesAsync();
 
+            return account;
         }
 
         [HttpPost("login")]
