@@ -14,22 +14,16 @@ namespace WebShopApi.Controllers
     [Route("api/[controller]")]
     public class AccountsController : Controller
     {
-        private readonly DataContext _context;
-        private readonly ILogger<AccountsController> _logger;
         private readonly IAccountsRepository _accountRepository;
         private readonly ITokenRepository _tokenRepository;
 
-        public AccountsController(
-            DataContext context, ILogger<AccountsController> logger,
-            IAccountsRepository accountRepository, ITokenRepository tokenRepository)
+        public AccountsController( IAccountsRepository accountRepository, ITokenRepository tokenRepository)
         {
-            _logger = logger;
             _accountRepository = accountRepository;
-            _context = context;
             _tokenRepository = tokenRepository;
         }
 
-        [HttpGet]
+        [HttpGet("/GetAll")]
         public async Task<ActionResult> Get()
         {
             List<DisplayUserDTO> users = new List<DisplayUserDTO>();
@@ -37,29 +31,24 @@ namespace WebShopApi.Controllers
             return Ok(users);
         }
 
-        [HttpPost("register")]
+        [HttpPost("/register")]
         [AllowAnonymous]
-        public async Task<ActionResult<UserDTO>> Register(RegisterDTO registerDto)
+        public async Task<ActionResult> Register(RegisterDTO registerDto)
         {
             if (await _accountRepository.UserExists(registerDto.name)) return BadRequest("Username is taken");
             await _accountRepository.Register(registerDto);
             var user = await _accountRepository.Register(registerDto);
 
-            // chyba do wyjebania elo
-            var userDto = new UserDTO()
-            {
-                username = user.Name,
-                Token = _tokenRepository.CreateToken(user)
-            };
 
-            return Created($"/api/accounts/{userDto.username}", userDto);
+            return Created($"/api/accounts/{user.name}", user);
         }
 
-        [HttpPost("login")]
+        [HttpPost("/login")]
         [AllowAnonymous]
-        public async Task<ActionResult<UserDTO>> Login(LoginDTO loginDto)
+        public async Task<ActionResult> Login(LoginDTO loginDto)
         {
             var user = await _accountRepository.Login(loginDto);
+            if (user == null) return Unauthorized("Invalid username or password");
             var userDto = new UserDTO()
             {
                 username = user.Name,

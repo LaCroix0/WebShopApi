@@ -80,7 +80,7 @@ namespace WebShopApi.Models.Repository
             {
                 var command = connection.CreateCommand();
                 command.CommandText = 
-                    "Update Products set name = @1, description = @2, category = @3, serialnumber = @4, producer = @5 where id = @6";
+                    "Update Products set username = @1, description = @2, category = @3, serialnumber = @4, producer = @5 where id = @6";
                 command.Parameters.AddWithValue("@1", product.Name);
                 command.Parameters.AddWithValue("@2", product.Description is null ? DBNull.Value : product.Description);
                 command.Parameters.AddWithValue("@3", product.Category);

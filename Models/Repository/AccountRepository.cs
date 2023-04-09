@@ -14,7 +14,7 @@ namespace WebShopApi.Models.Repository
     public interface IAccountsRepository
     {
         Task Get(List<DisplayUserDTO> users);
-        Task<Account> Register(RegisterDTO registerDto);
+        Task<DisplayUserDTO> Register(RegisterDTO registerDto);
         Task<Account> Login(LoginDTO loginDto);
         Task<bool> UserExists(string name);
     }
@@ -46,7 +46,7 @@ namespace WebShopApi.Models.Repository
                 }
             }
         }
-        public async Task<Account> Register(RegisterDTO registerDto)
+        public async Task<DisplayUserDTO> Register(RegisterDTO registerDto)
         {
             using var hmac = new HMACSHA512();
             Account account = new Account()
@@ -57,24 +57,31 @@ namespace WebShopApi.Models.Repository
                 Email = registerDto.email,
                 Role = "User"
             };
+
             
             _context.Users.Add(account);
             await _context.SaveChangesAsync();
 
-            return account;
+            return new DisplayUserDTO()
+            {
+                id = account.Id,
+                name = account.Name,
+                email = account.Email,
+                role = account.Role
+            }; ;
         }
 
         [HttpPost("login")]
         public async Task<Account> Login(LoginDTO loginDto)
         {
-            var account = await _context.Users.SingleOrDefaultAsync(x => x.Name == loginDto.name);
+            var account = await _context.Users.SingleOrDefaultAsync(x => x.Name == loginDto.username);
 
             var hmac = new HMACSHA512(account.PasswordSalt);
             var computedHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(loginDto.password));
             
             for (int i = 0; i < computedHash.Length; i++)
             {
-                if (computedHash[i] != account.PasswordHash[i]) throw new Exception("Wrong password");
+                if (computedHash[i] != account.PasswordHash[i]) return null;
             }
 
             return account;

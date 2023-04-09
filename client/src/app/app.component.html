@@ -1,13 +1,15 @@
-<h1>{{title}}</h1>
+<app-nav></app-nav>
 
+<div class="container" style="margin-top: 100px;">
+  <ul>
+    <li *ngFor="let product of products">
+      Numer produktu: {{product.id}},<br />
+      &nbsp; Nazwa produktu: {{product.name}},<br />
+      &nbsp; Kategoria produktu: {{product.category}},<br />
+      &nbsp; Producent produktu: {{product.producer}},<br />
+      &nbsp; Opis produktu: {{product.description}}<br />
+      <br />
+    </li>
+  </ul>
+</div>
 
-<ul>
-  <li *ngFor="let product of products">
-    Numer produktu: {{product.id}},<br />
-    &nbsp; Nazwa produktu: {{product.name}},<br />
-    &nbsp; Kategoria produktu: {{product.category}},<br />
-    &nbsp; Producent produktu: {{product.producer}},<br />
-    &nbsp; Opis produktu: {{product.description}}<br />
-    <br />
-  </li>
-</ul>
