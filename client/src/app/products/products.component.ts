@@ -15,8 +15,6 @@ export class ProductsComponent implements OnInit{
     this.getProducts();
   }
 
-
-
   getProducts() {
     this.http.get('https://localhost:5001/api/Products').subscribe({
       next: response => this.products = response,

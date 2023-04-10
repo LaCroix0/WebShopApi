@@ -18,7 +18,7 @@ namespace WebShopApi.Controllers
             _tokenRepository = tokenRepository;
         }
 
-        [HttpGet("/GetAll")]
+        [HttpGet]
         public async Task<ActionResult> Get()
         {
             List<DisplayUserDTO> users = new List<DisplayUserDTO>();
@@ -26,7 +26,7 @@ namespace WebShopApi.Controllers
             return Ok(users);
         }
 
-        [HttpPost("/register")]
+        [HttpPost("register")]
         [AllowAnonymous]
         public async Task<ActionResult> Register(RegisterDTO registerDto)
         {
@@ -36,7 +36,7 @@ namespace WebShopApi.Controllers
             return Created($"/api/accounts/{user.name}", user);
         }
 
-        [HttpPost("/login")]
+        [HttpPost("login")]
         [AllowAnonymous]
         public async Task<ActionResult> Login(LoginDTO loginDto)
         {

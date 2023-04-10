@@ -8,7 +8,7 @@ import { BehaviorSubject } from 'rxjs';
   providedIn: 'root'
 })
 export class AccountService {
-  baseUrl = 'https://localhost:5001/';
+  baseUrl = 'https://localhost:5001/api/accounts/';
   private currentUserSource  = new BehaviorSubject<User | null>(null);
   currentUser$ = this.currentUserSource.asObservable();
 
