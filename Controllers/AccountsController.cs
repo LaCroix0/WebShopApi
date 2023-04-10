@@ -1,10 +1,5 @@
-﻿using System.Security.Cryptography;
-using System.Text;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using WebShopApi.Data;
-using WebShopApi.Models;
 using WebShopApi.Models.DTOs;
 using WebShopApi.Models.Repository;
 
@@ -35,10 +30,8 @@ namespace WebShopApi.Controllers
         [AllowAnonymous]
         public async Task<ActionResult> Register(RegisterDTO registerDto)
         {
-            if (await _accountRepository.UserExists(registerDto.name)) return BadRequest("Username is taken");
-            await _accountRepository.Register(registerDto);
+            if (await _accountRepository.UserExists(registerDto.username)) return BadRequest("Username is taken");
             var user = await _accountRepository.Register(registerDto);
-
 
             return Created($"/api/accounts/{user.name}", user);
         }

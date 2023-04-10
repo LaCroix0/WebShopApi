@@ -1,5 +1,6 @@
 ﻿using System.Data.SqlClient;
 using System.Diagnostics.Eventing.Reader;
+using System.Linq.Expressions;
 using System.Security.Cryptography;
 using System.Security.Principal;
 using System.Text;
@@ -51,7 +52,7 @@ namespace WebShopApi.Models.Repository
             using var hmac = new HMACSHA512();
             Account account = new Account()
             {
-                Name = registerDto.name.ToLower(),
+                Name = registerDto.username.ToLower(),
                 PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(registerDto.password)),
                 PasswordSalt = hmac.Key,
                 Email = registerDto.email,
@@ -74,11 +75,14 @@ namespace WebShopApi.Models.Repository
         [HttpPost("login")]
         public async Task<Account> Login(LoginDTO loginDto)
         {
+            if (await _context.Users.SingleOrDefaultAsync(x => x.Name == loginDto.username) == null)
+            {
+                return null;
+            }
             var account = await _context.Users.SingleOrDefaultAsync(x => x.Name == loginDto.username);
 
             var hmac = new HMACSHA512(account.PasswordSalt);
             var computedHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(loginDto.password));
-            
             for (int i = 0; i < computedHash.Length; i++)
             {
                 if (computedHash[i] != account.PasswordHash[i]) return null;
