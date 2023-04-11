@@ -1,4 +1,6 @@
-﻿namespace WebShopApi.Models
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+namespace WebShopApi.Models
 {
     public class Product
     {
@@ -8,5 +10,9 @@
         public string Category { get; set; }
         public int SerialNumber { get; set; }
         public string Producer { get; set; }
+        public string PublicId { get; set; }
+        public int AccountId { get; set; }
+        public Account Account{ get; set; }
+
     }
 }
