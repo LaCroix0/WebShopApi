@@ -72,7 +72,6 @@ namespace WebShopApi.Models.Repository
             }; ;
         }
 
-        [HttpPost("login")]
         public async Task<Account> Login(LoginDTO loginDto)
         {
             if (await _context.Users.SingleOrDefaultAsync(x => x.Name == loginDto.username) == null)
